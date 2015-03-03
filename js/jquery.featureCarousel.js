@@ -23,7 +23,7 @@
     // override the default options with user defined options
     options = $.extend({}, $.fn.featureCarousel.defaults, options || {});
 
-    /* These are universal values that are used throughout the plugin. Do not modify them
+    /* These are univeral values that are used throughout the plugin. Do not modify them
      * unless you know what you're doing. Most of them feed off the options
      * so most customization can be achieved by modifying the options values */
     var pluginData = {
@@ -516,9 +516,6 @@
         $newRight.css("z-index", 3);
       }
       $newCenter.css("z-index", 4);
-      
-      // Fire moving to center event
-      options.movingToCenter($newCenter);
 
       // Animate the features into their new positions
       animateFeature($newLeft, direction);
@@ -565,14 +562,16 @@
     }
 
     // Move to the left if left button clicked
-    $(options.leftButtonTag).on('click',function () {
-      initiateMove(false,1);
-    });
+    var leftButtons = $(options.leftButtonTag);
+    var leftButtonHandler = function () { initiateMove(false,1); };
+    if (options.jqModern) { leftButtons.on('click', null, leftButtonHandler); }
+    else { leftButtons.live('click', leftButtonHandler); }
 
     // Move to right if right button clicked
-    $(options.rightButtonTag).on('click',function () {
-      initiateMove(true,1);
-    });
+    var rightButtons = $(options.rightButtonTag);
+    var rightButtonHandler = function () { initiateMove(true,1); };
+    if (options.jqModern) { rightButtons.on('click', null, rightButtonHandler); }
+    else { rightButtons.live('click', rightButtonHandler); }
 
     // These are the click and hover events for the features
     pluginData.featuresContainer.find(".carousel-feature")
@@ -611,7 +610,8 @@
 
     // Add event listener to all clicks within the features container
     // This is done to disable any links that aren't within the center feature
-    $("a", pluginData.containerIDTag).on("click", function (event) {
+    var container = $("a", pluginData.containerIDTag);
+    var containerClickHandler = function (event) {
       // travel up to the container
       var $parents = $(this).parentsUntil(pluginData.containerIDTag);
       // now check each of the feature divs within it
@@ -636,10 +636,13 @@
           }
         }
       });
-    });
+    };
+    if (options.jqModern) { container.on('click', null, containerClickHandler); }
+    else { container.live('click', containerClickHandler); }
 
     // Did someone click one of the individual trackers?
-    $(".tracker-individual-blip",  pluginData.containerIDTag).on("click",function () {
+    var trackers = $(".tracker-individual-blip",  pluginData.containerIDTag);
+    var trackerClickHandler = function () {
       // grab the position # that was clicked
       var goTo = $(this).attr("id").substring(8);
       // find out where that feature # actually is in the carousel right now
@@ -657,8 +660,9 @@
           initiateMove(true,shortest);
         }
       }
-
-    });
+    };
+    if (options.jqModern) { trackers.on('click', null, trackerClickHandler); }
+    else { trackers.live('click', trackerClickHandler); }
     
     /****************
      PUBLIC FUNCTIONS 
@@ -748,8 +752,8 @@
     leavingCenter:        $.noop,
     // callback function for when center feature was clicked
     clickedCenter:        $.noop,
-    // callback function for when a feature has start moving to center
-    movingToCenter:       $.noop
+    // use $().on for jQuery >= 1.7, $().live for jQuery < 1.7
+    jqModern: 'undefined' !== typeof jQuery.fn.on
   };
   
 })(jQuery);
